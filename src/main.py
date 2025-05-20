@@ -6,7 +6,7 @@ import contextlib
 from routers.auth import router
 
 from base.config import CONFIG
-from base.database import create_database
+from base.database import DATABASE
 
 
 @contextlib.asynccontextmanager
@@ -15,7 +15,9 @@ async def lifespan(app: FastAPI):
 
 	config = os.getenv("APP_CONFIG")
 	CONFIG.load_config(config)
-	create_database(CONFIG["database_path"])
+	DATABASE.create(CONFIG["database_path"])
+
+	print(DATABASE.engine)
 
 	yield
 

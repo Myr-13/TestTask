@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from src.models.auth import LoginRequest, LoginResponse
+from src.base.database import DATABASE
 import src.controllers.auth as controller
 
 router = APIRouter(
@@ -10,6 +11,8 @@ router = APIRouter(
 
 @router.post("/login", response_model=LoginResponse)
 async def login(form: LoginRequest):
+	print(DATABASE.engine)
+
 	login_result = controller.login(
 		email=form.email,
 		password=form.password
