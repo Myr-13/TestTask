@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -22,3 +23,16 @@ class RegisterRequest(BaseModel):
 class RegisterResponse(BaseModel):
 	code: int
 	message: str
+
+
+class BookObject(BaseModel):
+	id: int
+	name: str
+	author: str
+	release_date: datetime.datetime
+	isbn: Optional[int]
+	count: int
+
+
+class BooksResponse(BaseModel):
+	books: list[BookObject]

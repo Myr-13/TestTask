@@ -3,25 +3,30 @@ import os
 import logging
 import contextlib
 
-from routers.auth import router
+from routers.auth import router as auth_router
+from routers.books import router as books_router
 
-from base.config import CONFIG
-from base.database import DATABASE
+import src.base.config as config
+import src.base.database as database
+from src.models.models import User, Book, BorrowedBook
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
 	logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-	config = os.getenv("APP_CONFIG")
-	CONFIG.load_config(config)
-	DATABASE.create(CONFIG["database_path"])
+	config_path = os.getenv("APP_CONFIG")
+	config.CONFIG.load_config(config_path)
+	database.initialize_db(config.CONFIG["database_path"])
 
-	print(DATABASE.engine)
+	User.metadata.create_all(bind=database.engine)
+	Book.metadata.create_all(bind=database.engine)
+	BorrowedBook.metadata.create_all(bind=database.engine)
 
 	yield
 
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(router)
+app.include_router(auth_router)
+app.include_router(books_router)

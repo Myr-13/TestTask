@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
-from src.models.auth import LoginRequest, LoginResponse
-from src.base.database import DATABASE
+from src.models.schemas import LoginRequest, LoginResponse, RegisterRequest, RegisterResponse
+import src.base.database as database
 import src.controllers.auth as controller
 
 router = APIRouter(
@@ -9,21 +10,37 @@ router = APIRouter(
 )
 
 
+def get_db():
+	db = database.session_local()
+	try:
+		yield db
+	finally:
+		db.close()
+
+
 @router.post("/login", response_model=LoginResponse)
-async def login(form: LoginRequest):
-	print(DATABASE.engine)
+async def login(form: LoginRequest, db: Session = Depends(get_db)):
+	try:
+		res = await controller.login(
+			email=form.email,
+			password=form.password,
+			db=db
+		)
+	except ValueError as e:
+		raise HTTPException(status_code=400, detail=str(e))
 
-	login_result = controller.login(
-		email=form.email,
-		password=form.password
-	)
-
-	if login_result is None:
-		return LoginResponse(code=1, message="Email or password is wrong", auth_token=None)
-	else:
-		return LoginResponse(code=0, auth_token=login_result)
+	return LoginResponse(code=0, auth_token=res)
 
 
 @router.post("/register")
-async def register():
-	pass
+async def register(form: RegisterRequest, db: Session = Depends(get_db)):
+	try:
+		await controller.register(
+			email=form.email,
+			password=form.password,
+			db=db
+		)
+	except Exception as e:
+		raise HTTPException(status_code=400, detail=str(e))
+
+	return RegisterResponse(code=0, message="Account created successfully")
