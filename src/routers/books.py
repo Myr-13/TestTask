@@ -55,3 +55,5 @@ async def return_(
 		await controller.return_(token=token, book_id=form.book_id, db=db)
 	except ValueError as e:
 		raise HTTPException(status_code=400, detail=str(e))
+
+	return 200

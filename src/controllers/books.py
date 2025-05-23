@@ -58,7 +58,6 @@ async def borrow(*, token: str, book_id: int, db: Session) -> None:
 	# 1 book of each id = 1 user
 	have_book: int = db.query(BorrowedBook) \
 		.filter(BorrowedBook.user_id == user_id, BorrowedBook.book_id == book_id).count()
-	print(have_book)
 	if have_book != 0:
 		raise ValueError("You already borrowed this book")
 
@@ -74,4 +73,27 @@ async def borrow(*, token: str, book_id: int, db: Session) -> None:
 
 
 async def return_(*, token: str, book_id: int, db: Session) -> None:
-	pass
+	# Check auth token
+	try:
+		token_data = decode_token(token)
+		user_id = int(token_data["sub"])
+	except ExpiredSignatureError:
+		raise ValueError("Token is expired")
+	except JWTError:
+		raise ValueError("Invalid token")
+
+	# Search for book
+	book: Book | None = db.query(Book).filter(Book.id == book_id).first()
+	if not book:
+		raise ValueError("Book didnt found")
+
+	# Check for borrowed book
+	borrowed_book: BorrowedBook | None = db.query(BorrowedBook) \
+		.filter(BorrowedBook.user_id == user_id, BorrowedBook.book_id == book_id).first()
+	if not borrowed_book or borrowed_book.return_date is not None:
+		raise ValueError("You didnt borrowed this book")
+
+	book.count += 1
+	borrowed_book.return_date = round(time.time())
+
+	db.commit()
