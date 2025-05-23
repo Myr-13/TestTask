@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from src.models.schemas import BooksResponse, BookBorrowRequest
+from src.models.schemas import BooksResponse, BookBorrowRequest, BookReturnRequest
 import src.base.database as database
 import src.controllers.books as controller
 
@@ -31,15 +31,27 @@ async def login(db: Session = Depends(get_db)):
 	return BooksResponse(books=res)
 
 
-@router.post("/borrow", response_model=BooksResponse)
-async def login(
-		form: BookBorrowRequest,
-		db: Session = Depends(get_db),
-		token: str = Depends(oauth2_scheme)):
-
+@router.post("/borrow")
+async def borrow(
+	form: BookBorrowRequest,
+	db: Session = Depends(get_db),
+	token: str = Depends(oauth2_scheme)
+):
 	try:
-		res = await controller.borrow(token=token, book_id=form.book_id, db=db)
+		await controller.borrow(token=token, book_id=form.book_id, db=db)
 	except ValueError as e:
 		raise HTTPException(status_code=400, detail=str(e))
 
-	return BooksResponse(books=res)
+	return 200
+
+
+@router.post("/return")
+async def return_(
+	form: BookReturnRequest,
+	db: Session = Depends(get_db),
+	token: str = Depends(oauth2_scheme)
+):
+	try:
+		await controller.return_(token=token, book_id=form.book_id, db=db)
+	except ValueError as e:
+		raise HTTPException(status_code=400, detail=str(e))

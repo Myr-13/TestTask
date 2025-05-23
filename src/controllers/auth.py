@@ -1,6 +1,5 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, UTC
-from time import time
 from sqlalchemy.orm import Session
 from jose import jwt
 
@@ -28,7 +27,7 @@ async def login(*, email: str, password: str, db: Session) -> str:
 		raise ValueError("Invalid email or password")
 
 	return jwt.encode(
-		{"usr_id": stmt.id, "exp": datetime.now(UTC) + timedelta(seconds=30), "iat": datetime.now(UTC)},
+		{"sub": str(stmt.id), "exp": datetime.now(UTC) + timedelta(weeks=30), "iat": datetime.now(UTC)},
 		config.CONFIG["jwt_secret"]
 	)
 

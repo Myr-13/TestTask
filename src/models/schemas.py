@@ -40,3 +40,7 @@ class BooksResponse(BaseModel):
 
 class BookBorrowRequest(BaseModel):
 	book_id: int
+
+
+class BookReturnRequest(BaseModel):
+	book_id: int

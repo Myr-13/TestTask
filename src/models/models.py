@@ -6,19 +6,6 @@ import sqlalchemy.types as types
 from src.base.database import Base
 
 
-class MyEpochType(types.TypeDecorator):
-	impl = types.Integer
-	cache_ok = True
-
-	epoch = datetime(1970, 1, 1)
-
-	def process_bind_param(self, value, dialect):
-		return (value - self.epoch).days
-
-	def process_result_value(self, value, dialect):
-		return self.epoch + timedelta(days=value)
-
-
 class User(Base):
 	__tablename__ = "users"
 
@@ -44,5 +31,5 @@ class BorrowedBook(Base):
 	id = Column(Integer, primary_key=True)
 	user_id = Column(Integer, nullable=False)
 	book_id = Column(Integer, nullable=False)
-	borrow_date = Column(MyEpochType, nullable=False)
-	return_date = Column(MyEpochType, default=None)
+	borrow_date = Column(Integer, nullable=False)
+	return_date = Column(Integer, default=None)
