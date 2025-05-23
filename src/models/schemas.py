@@ -36,3 +36,7 @@ class BookObject(BaseModel):
 
 class BooksResponse(BaseModel):
 	books: list[BookObject]
+
+
+class BookBorrowRequest(BaseModel):
+	book_id: int

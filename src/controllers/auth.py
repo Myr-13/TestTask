@@ -1,5 +1,6 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, UTC
+from time import time
 from sqlalchemy.orm import Session
 from jose import jwt
 
@@ -9,17 +10,16 @@ import src.base.config as config
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_password_hash(pw: str):
+def get_password_hash(pw: str) -> str:
 	return pwd_context.hash(pw)
 
 
-def verify_password(pw: str, hash_pw: str):
+def verify_password(pw: str, hash_pw: str) -> bool:
 	return pwd_context.verify(pw, hash_pw)
 
 
-def verify_token(token: str):
-	data = jwt.decode(token, config.CONFIG["jwt_secret"])
-	return data["exp"] > datetime.now(UTC)
+def decode_token(token: str) -> dict:
+	return jwt.decode(token, config.CONFIG["jwt_secret"])
 
 
 async def login(*, email: str, password: str, db: Session) -> str:
@@ -28,7 +28,7 @@ async def login(*, email: str, password: str, db: Session) -> str:
 		raise ValueError("Invalid email or password")
 
 	return jwt.encode(
-		{"usr": f"{stmt.id}_{stmt.email}", "exp": datetime.now(UTC) + timedelta(minutes=30)},
+		{"usr_id": stmt.id, "exp": datetime.now(UTC) + timedelta(seconds=30), "iat": datetime.now(UTC)},
 		config.CONFIG["jwt_secret"]
 	)
 
