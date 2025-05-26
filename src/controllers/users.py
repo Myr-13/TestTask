@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from jose import JWTError, ExpiredSignatureError
 from datetime import datetime
 
-from src.models.models import Book, BorrowedBook
+from src.models.models import BorrowedBook
 from src.models.schemas import BorrowedBookObject
 from src.controllers.auth import decode_token
 

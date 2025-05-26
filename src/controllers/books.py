@@ -2,7 +2,6 @@ import datetime
 import time
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update
 from jose import JWTError, ExpiredSignatureError
 
 from src.models.models import Book, BorrowedBook
@@ -11,18 +10,17 @@ from src.controllers.auth import decode_token
 
 
 async def get(*, db: Session) -> list[BookObject]:
-	stmt = select(Book)
+	books_set = db.query(Book)
 	books = []
 
-	for book in db.scalars(stmt):
-		d = datetime.datetime.fromordinal(book.release_date)
-		print(d, book.isbn)
+	for book in books_set:
+		book: Book
 
 		books.append(BookObject(
 			id=book.id,
 			name=book.name,
 			author=book.author,
-			release_date=d,
+			release_date=datetime.datetime.fromordinal(book.release_date),
 			isbn=book.isbn,
 			count=book.count
 		))

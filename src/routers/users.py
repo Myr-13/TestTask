@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from src.models.schemas import BooksResponse, BookBorrowRequest, BookReturnRequest
 import src.base.database as database
 import src.controllers.users as controller
 

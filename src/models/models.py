@@ -1,7 +1,4 @@
-from datetime import datetime, timedelta
-
-from sqlalchemy import Column, Integer, String, BigInteger, DateTime
-import sqlalchemy.types as types
+from sqlalchemy import Column, Integer, String, BigInteger
 
 from src.base.database import Base
 
