@@ -44,3 +44,9 @@ class BookBorrowRequest(BaseModel):
 
 class BookReturnRequest(BaseModel):
 	book_id: int
+
+
+class BorrowedBookObject(BaseModel):
+	id: int
+	book_id: int
+	borrow_date: datetime.datetime

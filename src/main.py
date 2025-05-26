@@ -5,6 +5,7 @@ import contextlib
 
 from routers.auth import router as auth_router
 from routers.books import router as books_router
+from routers.users import router as users_router
 
 import src.base.config as config
 import src.base.database as database
@@ -30,3 +31,4 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
 app.include_router(books_router)
+app.include_router(users_router)
