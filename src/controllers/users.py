@@ -1,21 +1,13 @@
 from sqlalchemy.orm import Session
-from jose import JWTError, ExpiredSignatureError
 from datetime import datetime
 
-from src.models.models import BorrowedBook
-from src.models.schemas import BorrowedBookObject
-from src.controllers.auth import decode_token
+from src.models.models import BorrowedBook, User, UserRights
+from src.models.schemas import BorrowedBookObject, UserObject
+from src.controllers.auth import check_token, user_have_role
 
 
 async def get_books_list(*, token: str, db: Session) -> list[BorrowedBook]:
-	# Check auth token
-	try:
-		token_data = decode_token(token)
-		user_id = int(token_data["sub"])
-	except ExpiredSignatureError:
-		raise ValueError("Token is expired")
-	except JWTError:
-		raise ValueError("Invalid token")
+	user_id: int = check_token(token)
 
 	books_set = db.query(BorrowedBook).filter(BorrowedBook.user_id == user_id, BorrowedBook.return_date == None)
 	out = []
@@ -30,3 +22,28 @@ async def get_books_list(*, token: str, db: Session) -> list[BorrowedBook]:
 		))
 
 	return out
+
+
+async def get_user_info(*, target_id: int, token: str, db: Session) -> UserObject:
+	user_id: int = check_token(token)
+
+	# Get authed user
+	authed_user: User | None = db.query(User).filter(User.id == user_id).first()
+	if authed_user is None:
+		raise ValueError("Invalid token. User not found")
+
+	# Check for rights
+	if not user_have_role(authed_user, UserRights.GetUsersInfo):
+		raise ValueError("Not enough rights")
+
+	# Get target user data
+	target_user: User | None = db.query(User).filter(User.id == target_id).first()
+	if target_user is None:
+		raise ValueError("Target user not found")
+
+	return UserObject(
+		id=target_user.id,
+		email=target_user.email,
+		rights=target_user.rights,
+		banned=bool(target_user.banned)
+	)

@@ -28,3 +28,13 @@ async def login(db: Session = Depends(get_db), token: str = Depends(oauth2_schem
 		raise HTTPException(status_code=400, detail=str(e))
 
 	return res
+
+
+@router.get("/get/{user_id}")
+async def get_user_info(user_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+	try:
+		user = await controller.get_user_info(target_id=user_id, token=token, db=db)
+	except ValueError as e:
+		raise HTTPException(status_code=400, detail=str(e))
+
+	return user

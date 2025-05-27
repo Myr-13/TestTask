@@ -50,3 +50,10 @@ class BorrowedBookObject(BaseModel):
 	id: int
 	book_id: int
 	borrow_date: datetime.datetime
+
+
+class UserObject(BaseModel):
+	id: int
+	email: str
+	rights: int
+	banned: bool

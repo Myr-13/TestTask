@@ -6,7 +6,7 @@ from jose import JWTError, ExpiredSignatureError
 
 from src.models.models import Book, BorrowedBook
 from src.models.schemas import BookObject
-from src.controllers.auth import decode_token
+from src.controllers.auth import check_token
 
 
 async def get(*, db: Session) -> list[BookObject]:
@@ -29,15 +29,7 @@ async def get(*, db: Session) -> list[BookObject]:
 
 
 async def borrow(*, token: str, book_id: int, db: Session) -> None:
-	# Check auth token
-	# TODO: OPT: Move this to auth controller
-	try:
-		token_data = decode_token(token)
-		user_id = int(token_data["sub"])
-	except ExpiredSignatureError:
-		raise ValueError("Token is expired")
-	except JWTError:
-		raise ValueError("Invalid token")
+	user_id: int = check_token(token)
 
 	# Search for book
 	book: Book | None = db.query(Book).filter(Book.id == book_id).first()
@@ -71,19 +63,12 @@ async def borrow(*, token: str, book_id: int, db: Session) -> None:
 
 
 async def return_(*, token: str, book_id: int, db: Session) -> None:
-	# Check auth token
-	try:
-		token_data = decode_token(token)
-		user_id = int(token_data["sub"])
-	except ExpiredSignatureError:
-		raise ValueError("Token is expired")
-	except JWTError:
-		raise ValueError("Invalid token")
+	user_id: int = check_token(token)
 
 	# Search for book
 	book: Book | None = db.query(Book).filter(Book.id == book_id).first()
 	if not book:
-		raise ValueError("Book didnt found")
+		raise ValueError("Book didn't found")
 
 	# Check for borrowed book
 	borrowed_book: BorrowedBook | None = db.query(BorrowedBook) \

@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, UTC
 from sqlalchemy.orm import Session
-from jose import jwt
+from jose import jwt, JWTError, ExpiredSignatureError
 
 from src.models.models import User
 import src.base.config as config
@@ -17,19 +17,39 @@ def verify_password(pw: str, hash_pw: str) -> bool:
 	return pwd_context.verify(pw, hash_pw)
 
 
+def encode_token(subject):
+	return jwt.encode(
+		{"sub": str(subject), "exp": datetime.now(UTC) + timedelta(weeks=30), "iat": datetime.now(UTC)},
+		config.CONFIG["jwt_secret"]
+	)
+
+
 def decode_token(token: str) -> dict:
 	return jwt.decode(token, config.CONFIG["jwt_secret"])
 
 
-async def login(*, email: str, password: str, db: Session) -> str:
-	stmt: User | None = db.query(User).filter(User.email == email).first()
-	if not stmt or not verify_password(password, stmt.password_hash):
-		raise ValueError("Invalid email or password")
+def check_token(token: str) -> int:
+	try:
+		token_data = decode_token(token)
+		return int(token_data["sub"])
+	except ExpiredSignatureError:
+		raise ValueError("Token is expired")
+	except JWTError:
+		raise ValueError("Invalid token")
 
-	return jwt.encode(
-		{"sub": str(stmt.id), "exp": datetime.now(UTC) + timedelta(weeks=30), "iat": datetime.now(UTC)},
-		config.CONFIG["jwt_secret"]
-	)
+
+def user_have_role(user: User, right: int) -> bool:
+	return user.rights & right != 0
+
+
+async def login(*, email: str, password: str, db: Session) -> str:
+	user: User | None = db.query(User).filter(User.email == email).first()
+	if not user or not verify_password(password, user.password_hash):
+		raise ValueError("Invalid email or password")
+	if user.banned == 1:
+		raise ValueError("User is banned")
+
+	return encode_token(user.id)
 
 
 async def register(*, email: str, password: str, db: Session) -> None:

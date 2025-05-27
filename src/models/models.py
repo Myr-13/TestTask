@@ -4,8 +4,11 @@ from enum import Enum
 from src.base.database import Base
 
 
-class Rights(Enum):
-	foo = 1
+class UserRights:
+	GetUsersInfo = 1 << 0
+	SetUsersInfo = 1 << 1
+	BlockUsers = 1 << 2
+	UpdateBooks = 1 << 3
 
 
 class User(Base):
@@ -15,6 +18,7 @@ class User(Base):
 	email = Column(String, nullable=False)
 	password_hash = Column(String, nullable=False)
 	rights = Column(Integer, nullable=False, default=0)
+	banned = Column(Integer, nullable=False, default=0)
 
 
 class Book(Base):
