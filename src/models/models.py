@@ -1,6 +1,11 @@
 from sqlalchemy import Column, Integer, String, BigInteger
+from enum import Enum
 
 from src.base.database import Base
+
+
+class Rights(Enum):
+	foo = 1
 
 
 class User(Base):
@@ -9,6 +14,7 @@ class User(Base):
 	id = Column(Integer, primary_key=True)
 	email = Column(String, nullable=False)
 	password_hash = Column(String, nullable=False)
+	rights = Column(Integer, nullable=False, default=0)
 
 
 class Book(Base):
